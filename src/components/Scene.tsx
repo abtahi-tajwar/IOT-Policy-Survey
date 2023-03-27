@@ -179,6 +179,11 @@ const Wrapper = styled.div`
 
             }
         }
+        @media screen and (max-width: 800px) {
+            .content {
+                flex-direction: column;
+            }
+        }
         .heading-label {
             margin-bottom: 15px;
             display: flex;
