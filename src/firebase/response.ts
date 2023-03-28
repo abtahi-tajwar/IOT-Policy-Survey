@@ -1,6 +1,6 @@
 import app from "./init";
 import { ResponseType } from "../interfaces/ResponseType";
-import { doc, getDoc, setDoc, getDocs, collection, query, where, getFirestore } from "firebase/firestore"; 
+import { doc, getDoc, setDoc, addDoc, getDocs, collection, query, where, getFirestore } from "firebase/firestore"; 
 import { getAll } from "./scenes";
 
 export function create(data: ResponseType) {
@@ -10,7 +10,8 @@ export function create(data: ResponseType) {
         if (responseExists) {
             resolve(false)
         }
-        await setDoc(doc(db, "responses", data.userId), data);
+        await addDoc(collection(db, "responses"), data);
+        await addDoc(collection(db, "users"), { id: data.userId})
         resolve(true)
     })
 }
