@@ -23,13 +23,14 @@ export function getAll() {
             const obj: SceneGetType = {
                 id: doc.id,
                 data: {
+                    name: docData.name,
                     order: docData.order,
                     instruction_markdown: docData.instruction_markdown,
-                    scenario_markdown: docData.scenario_markdown
+                    scenario_markdown: docData.scenario_markdown,
+                    active: docData.active
                 }
             }
             
-            console.log(doc.id, " => ", doc.data());
             // obj.data.instruction_markdown = await downloadAndReadFile(doc.data().instruction_markdown)
             // obj.data.scenario_markdown = await downloadAndReadFile(doc.data().scenario_markdown)
             result.push(obj)

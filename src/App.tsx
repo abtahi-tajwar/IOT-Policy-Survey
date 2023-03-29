@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import Scene from './components/Scene'
 import UserIdInput from './components/UserIdInput'
 import { getAll } from './firebase/scenes'
-import ReactMarkdown from 'react-markdown'
 import { SceneGetType } from './interfaces/SceneType'
 import { getResponseScenesOfUser } from './firebase/response'
 import './App.css'
@@ -25,17 +24,19 @@ function App() {
       setCurrentScene(response[0])
     })
   }, [])
-  useEffect(() => {
-    if (scenes) {
-      setCurrentScene(scenes[0])
 
-      if (currentSceneIndex === scenes.length - 1) {
-        setAtLastScene(true)
-      } else { 
-        setAtLastScene(false) 
-      }
+  useEffect(() => {
+    console.log("Changing Scene here", scenes)
+    if (scenes) {
+      setCurrentScene(scenes[currentSceneIndex])
+      checkIfLastScene(scenes.length, currentSceneIndex)
     } 
   }, [currentSceneIndex])
+
+  // useEffect(() => {
+  //   console.log("At last scene", atLastScene, currentSceneIndex)
+  // }, [atLastScene, currentSceneIndex])
+
   useEffect(() => {
     if (userId && scenes) {
       getResponseScenesOfUser(userId).then(ids => {
@@ -43,17 +44,19 @@ function App() {
           if (ids.length === scenes.length) {
             setHasUserAlreadyTookTest(true)
           } else {
-            const sc = scenes.find(s => s.id === ids[0])
-            if (sc) {
-              setCurrentScene(sc)
+            const _scene_index = scenes.findIndex(s => s.id === ids[0]);
+            
+            if (_scene_index !== -1) {
+              setCurrentSceneIndex(_scene_index + 1)
+              setCurrentScene(scenes[_scene_index + 1])
             }
             setHasUserAlreadyTookTest(false)
           }
         } else {
+          checkIfLastScene(scenes.length, 0)
           setHasUserAlreadyTookTest(false)
         }
       })
-      
     }
   }, [userId, scenes])
 
@@ -68,8 +71,14 @@ function App() {
           break
         }
         sceneIndex += 1
-      }
-      
+      }  
+    }
+  }
+  const checkIfLastScene = (totalScenes: number, currentSceneIndex: number) => {
+    if (currentSceneIndex === totalScenes - 1) {
+      setAtLastScene(true)
+    } else { 
+      setAtLastScene(false) 
     }
   }
   

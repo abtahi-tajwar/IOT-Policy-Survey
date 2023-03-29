@@ -11,7 +11,7 @@ export function create(data: ResponseType) {
             resolve(false)
         }
         await addDoc(collection(db, "responses"), data);
-        await addDoc(collection(db, "users"), { id: data.userId})
+        await addDoc(collection(db, "candidates"), { id: data.userId })
         resolve(true)
     })
 }

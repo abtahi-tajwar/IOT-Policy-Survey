@@ -29,11 +29,17 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     const [testFinished, setTestFinished] = React.useState<boolean>(false)
 
     React.useEffect(() => {
+        console.log(scene, atLastScene)
         if (scene && hasUserAlreadyTookTest !== null) {
+            setResponseStatus({
+                status: 'not_submitted',
+                message: 'Your Response Is Not Attempted For Submission Yet'
+            })
             setScenarioMd(scene.data.scenario_markdown)
             setInstructionMd(scene.data.instruction_markdown)
             setLoading(false)
             setStartingTime((new Date()).getTime())
+            setPolicyInput('')
         }
     }, [scene, hasUserAlreadyTookTest])
 
@@ -72,12 +78,6 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
         if (!atLastScene) {
             goToNextScene()
         }
-    }
-    const testPopupBackdrop = () => {
-        setResponseStatus({
-            status: 'loading',
-            message: 'Checking & Submitting Your Response'
-        })
     }
   return (
     <Wrapper>
