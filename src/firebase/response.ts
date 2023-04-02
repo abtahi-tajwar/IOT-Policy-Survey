@@ -1,6 +1,6 @@
 import app from "./init";
 import { ResponseType } from "../interfaces/ResponseType";
-import { doc, getDoc, setDoc, addDoc, getDocs, collection, query, where, getFirestore } from "firebase/firestore"; 
+import { doc, getDoc, setDoc, updateDoc, addDoc, getDocs, collection, query, where, getFirestore } from "firebase/firestore"; 
 import { getAll } from "./scenes";
 
 export function create(data: ResponseType) {
@@ -11,7 +11,21 @@ export function create(data: ResponseType) {
             resolve(false)
         }
         await addDoc(collection(db, "responses"), data);
-        await addDoc(collection(db, "candidates"), { id: data.userId })
+        const docRef = doc(db, "candidates", data.userId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            await updateDoc(doc(db, "candidates", data.userId), {
+                responses: docSnap.data().responses + 1
+            });
+        } else {
+            await setDoc(doc(db, "candidates", data.userId), {
+                id: data.userId,
+                responses: 1
+            });
+        }
+        
+        // await addDoc(collection(db, "candidates"), { id: data.userId })
         resolve(true)
     })
 }
