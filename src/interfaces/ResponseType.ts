@@ -2,6 +2,7 @@ export interface ResponseType {
     userId: string,
     timeRequired: number,
     sceneId: string,
+    sceneName: string,
     answer: string
 }
 export interface ResponseStatusType {

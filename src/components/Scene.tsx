@@ -54,6 +54,7 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
             userId,
             timeRequired: (new Date()).getTime() - startingTime,
             sceneId: scene ? scene.id : '',
+            sceneName: scene ? scene.data.name : '',
             answer: policyInput
         }
         createResponse(userResponse).then((res) => {

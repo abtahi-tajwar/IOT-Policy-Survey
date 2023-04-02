@@ -71,6 +71,7 @@ function getAllUserResponse(userId: string) {
                 userId: docData.userId,
                 timeRequired: docData.timeRequired,
                 sceneId: docData.sceneId,
+                sceneName: docData.sceneName,
                 answer: docData.answer
             })
         });
