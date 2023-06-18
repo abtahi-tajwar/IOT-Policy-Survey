@@ -56,8 +56,11 @@ export function getAll() {
         resolve(result);
     })
 }
-function getRemainingScenesForCandidate (candidateId: string) {
-    return new Promise(async (resolve, reject) => {
+export function getRemainingScenesForCandidate (candidateId: string) {
+    return new Promise(async (
+            resolve : (scenes : Array<SceneGetType>) => void, 
+            reject
+        ) => {
         const db = getFirestore()
         try {
             const userSnapshot : DocumentSnapshot<DocumentData> = await getCandidate(candidateId)
@@ -68,6 +71,7 @@ function getRemainingScenesForCandidate (candidateId: string) {
                 let scenes : Array<SceneGetType> = []
                 const scenariosSnapshot = await getDocs(q)
                 scenariosSnapshot.forEach(scene => {
+                    console.log("Checking for existing responses", userResponses.find(ur => ur.sceneId === scene.id))
                     if (!userResponses.find(ur => ur.sceneId === scene.id)) {
                         scenes.push({
                             id: scene.id,
@@ -95,13 +99,14 @@ function getRemainingScenesForCandidate (candidateId: string) {
                         }
                     }
                 }))
+                resolve(scenes)
             } else {
                 reject({
                     error: 'Invalid User Id'
                 })
             }
         } catch (error) {
-            
+            reject(error)
         }
     })
 }

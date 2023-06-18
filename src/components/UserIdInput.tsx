@@ -14,7 +14,7 @@ function UserIdInput({ setUserId } : UserIdInputType) {
     const [submitLoading, setSubmitLoading] = React.useState<boolean>(false)
     const handleSubmit = (newUser: Boolean) => {
         if (!newUser) {
-            setUserId(input)
+            setUserId(input.trim())
         } else {
             setSubmitLoading(true)
             createNewCandidate().then((user : DocumentReference<DocumentData>) => {
