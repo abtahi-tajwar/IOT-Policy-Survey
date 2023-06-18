@@ -34,9 +34,10 @@ export function getResponseScenesOfUser(userId: string) {
         let indexes : Array<string> = []
         const allScenes = await getAll()
         const allUserResponses = await getAllUserResponse(userId)
-
+        console.log("All user responses", allUserResponses)
         allScenes.forEach((scene) => {
             const response = allUserResponses.find(res => res.sceneId === scene.id)
+            console.log("Each response", response)
             if (response) {
                 indexes.push(scene.id)
             }
@@ -57,9 +58,10 @@ function checkForExistingUserResponse(userId: string, sceneId: string) {
         }
     })
 }
-function getAllUserResponse(userId: string) {
+export function getAllUserResponse(userId: string) {
     return new Promise<Array<ResponseType>>(async (resolve, reject) => {
         const db = getFirestore(app);
+
 
         const q = query(collection(db, "responses"), where("userId", "==", userId));
         const querySnapshot = await getDocs(q);

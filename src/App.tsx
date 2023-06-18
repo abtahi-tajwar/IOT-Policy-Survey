@@ -20,6 +20,7 @@ function App() {
 
   useEffect(() => {
     getAll().then(response => {
+      console.log("All scenes", response)
       setScenes(response)
       setCurrentScene(response[0])
     })
@@ -40,6 +41,7 @@ function App() {
   useEffect(() => {
     if (userId && scenes) {
       getResponseScenesOfUser(userId).then(ids => {
+        console.log("Ids", ids)
         if (ids.length > 0) {
           if (ids.length === scenes.length) {
             setHasUserAlreadyTookTest(true)

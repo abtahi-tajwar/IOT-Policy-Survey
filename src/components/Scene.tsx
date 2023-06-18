@@ -109,7 +109,8 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                                 )
                             }
                             <div className='heading-label'>
-                                No Training Mockup
+                                <div className='userId'>User Id: {userId}</div>
+                                <div>No Training Mockup</div>
                             </div>
                             <div className='content'>
                                 <div className="column">
@@ -188,7 +189,7 @@ const Wrapper = styled.div`
         .heading-label {
             margin-bottom: 15px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             padding: 10px 10px;
             box-sizing: border-box;
