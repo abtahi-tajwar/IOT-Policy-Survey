@@ -6,6 +6,7 @@ import { SceneGetType } from '../interfaces/SceneType'
 import PreLoader from '../assets/Preloader.gif'
 import { create as createResponse } from '../firebase/response'
 import { ResponseType, ResponseStatusType } from '../interfaces/ResponseType'
+import { generateCandidateCompletionToken } from '../firebase/candidates'
 
 interface SceneProps {
     userId: string,
@@ -25,6 +26,7 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     })
     const [scenarioMd, setScenarioMd] = React.useState<string>(`Failed to load data`)
     const [instructionMd, setInstructionMd] = React.useState<string>(`Failed to load data`)
+    const [completionToken, setCompletionToken] = React.useState<string>('')
     const [policyInput, setPolicyInput] = React.useState<string>('')
     const [startingTime, setStartingTime] = React.useState<number>((new Date()).getTime())
     const [testFinished, setTestFinished] = React.useState<boolean>(false)
@@ -44,6 +46,15 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
         }
     }, [scene, hasUserAlreadyTookTest])
 
+    React.useEffect(() => {
+        if (hasUserAlreadyTookTest) {
+            setLoading(true)
+            generateCandidateCompletionToken(userId).then(res => {
+                setCompletionToken(res)
+                setLoading(false)
+            })
+        }
+    }, [hasUserAlreadyTookTest])
     
 
     const handleSubmit = () => {
@@ -58,7 +69,15 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
             sceneName: scene ? scene.data.name : '',
             answer: policyInput
         }
-        createResponse(userResponse).then((res) => {
+        createResponse(userResponse).then(async (res) => {
+            if (atLastScene) {
+                try {
+                    const token = await generateCandidateCompletionToken(userId)
+                    setCompletionToken(token)
+                } catch (e) {
+                    console.log("Failed to generate completion token", e)
+                }
+            } 
             if (res) {
                 setResponseStatus({
                     status: 'successful',
@@ -156,13 +175,17 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                         }
                         </>
                     ) : (
-                        <div className='loading'>
+                        <div className='instructions'>
+                            <p>Here is your completion token</p><b>{completionToken}</b>
+                            <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
                             <p>Thank you for taking part in the test! Your help will play a crucial role in science</p>
                         </div>
                     )
                 ) : (
-                    <div className='loading'>
+                    <div className='instructions'>
                         <h1>You Already Took the test!</h1>
+                        <p>Here is your completion token</p><b>{completionToken}</b>
+                        <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
                         <p>Every user with can only take the test ony one time. Thank you for your interest!</p>
                     </div>
                 )}
@@ -246,6 +269,25 @@ const Wrapper = styled.div`
         justify-content: center;
         align-items: center;
         z-index: 10;
+    }
+    .instructions {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        flex-direction: column;
+        gap: 10px;
+        padding: 100px 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        max-width: 700px;
+        margin: 0 auto;
     }
 `
 
