@@ -52,7 +52,7 @@ export const generateCandidateCompletionToken = (candidateId: string) => {
                 reject("Wrong candidate ID")
             } else {
                 if (!candidateData.surveyCompleted) {
-                    const token: string = `${generateRandomString(22)}${candidateId}${generateRandomString(22)}`
+                    const token: string = `${generateRandomString(6)}${candidateId}${generateRandomString(6)}`
                     await updateDoc(docRef, {
                         completionToken: token,
                         surveyCompleted: true

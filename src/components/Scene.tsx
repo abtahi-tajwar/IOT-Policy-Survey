@@ -7,6 +7,7 @@ import PreLoader from '../assets/Preloader.gif'
 import { create as createResponse } from '../firebase/response'
 import { ResponseType, ResponseStatusType } from '../interfaces/ResponseType'
 import { generateCandidateCompletionToken } from '../firebase/candidates'
+import TextCopier from './TextCopier'
 
 interface SceneProps {
     userId: string,
@@ -131,8 +132,8 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                                     )
                                 }
                                 <div className='heading-label'>
-                                    <div className='userId'>User Id: {userId}</div>
-                                    <div>No Training Mockup</div>
+                                    <div className='userId'>User Id: <TextCopier text={userId} /></div>
+                                    {/* <div>No Training Mockup</div> */}
                                 </div>
                                 <div className='content'>
                                     <div className="column">
@@ -176,7 +177,8 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                         </>
                     ) : (
                         <div className='instructions'>
-                            <p>Here is your completion token</p><b>{completionToken}</b>
+                            <p>Here is your completion token</p>
+                            <TextCopier text={completionToken} />
                             <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
                             <p>Thank you for taking part in the test! Your help will play a crucial role in science</p>
                         </div>
@@ -184,7 +186,8 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                 ) : (
                     <div className='instructions'>
                         <h1>You Already Took the test!</h1>
-                        <p>Here is your completion token</p><b>{completionToken}</b>
+                        <p>Here is your completion token</p>
+                        <TextCopier text={completionToken} />
                         <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
                         <p>Every user with can only take the test ony one time. Thank you for your interest!</p>
                     </div>
@@ -225,6 +228,11 @@ const Wrapper = styled.div`
             align-items: center;
             padding: 10px 10px;
             box-sizing: border-box;
+        }
+        .userId {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .scenario {
             flex: 1;
