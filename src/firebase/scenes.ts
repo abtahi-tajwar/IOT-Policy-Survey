@@ -6,9 +6,13 @@ import {
   orderBy,
   getDocs,
   getFirestore,
+  DocumentSnapshot,
+  DocumentData,
 } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { SceneGetType } from "../interfaces/SceneType";
+import { getCandidate } from "./candidates";
+import { getAllUserResponse } from "./response";
 
 
 export function getAll() {
@@ -27,7 +31,8 @@ export function getAll() {
                     order: docData.order,
                     instruction_markdown: docData.instruction_markdown,
                     scenario_markdown: docData.scenario_markdown,
-                    active: docData.active
+                    active: docData.active,
+                    groupId: docData.groupId
                 }
             }
             
@@ -51,7 +56,60 @@ export function getAll() {
         resolve(result);
     })
 }
-
+export function getRemainingScenesForCandidate (candidateId: string) {
+    return new Promise(async (
+            resolve : (scenes : Array<SceneGetType>) => void, 
+            reject
+        ) => {
+        const db = getFirestore()
+        try {
+            const userSnapshot : DocumentSnapshot<DocumentData> = await getCandidate(candidateId)
+            const userResponses = await getAllUserResponse(candidateId)
+            const userData = userSnapshot.data()
+            if (userData) {
+                const q =  query(collection(db, "scenarios"), where("groupId", '==', userData.assignedGroup))
+                let scenes : Array<SceneGetType> = []
+                const scenariosSnapshot = await getDocs(q)
+                scenariosSnapshot.forEach(scene => {
+                    console.log("Checking for existing responses", userResponses.find(ur => ur.sceneId === scene.id))
+                    if (!userResponses.find(ur => ur.sceneId === scene.id)) {
+                        scenes.push({
+                            id: scene.id,
+                            data: {
+                                name: scene.data().name,
+                                order: scene.data().order,
+                                instruction_markdown: scene.data().instruction_markdown,
+                                scenario_markdown: scene.data().scenario_markdown,
+                                active: scene.data().active,
+                                groupId: scene.data().groupId
+                            }
+                        })
+                    }
+                })
+                scenes = await Promise.all(scenes.map(async (obj) => {
+                    const instruction_markdown: string = await downloadAndReadFile(obj.data.instruction_markdown)
+                    const scenario_markdown: string = await downloadAndReadFile(obj.data.scenario_markdown)
+                    // console.log("Instruction MD", instruction_markdown)
+                    return {
+                        ...obj,
+                        data: {
+                            ...obj.data,
+                            instruction_markdown,
+                            scenario_markdown
+                        }
+                    }
+                }))
+                resolve(scenes)
+            } else {
+                reject({
+                    error: 'Invalid User Id'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
 function downloadAndReadFile(url: string) {
     return new Promise<string>(async (resolve, reject) => {
         const storage = getStorage();

@@ -6,16 +6,19 @@ import { SceneGetType } from '../interfaces/SceneType'
 import PreLoader from '../assets/Preloader.gif'
 import { create as createResponse } from '../firebase/response'
 import { ResponseType, ResponseStatusType } from '../interfaces/ResponseType'
+import { generateCandidateCompletionToken } from '../firebase/candidates'
+import TextCopier from './TextCopier'
 
 interface SceneProps {
     userId: string,
     scene: SceneGetType | null /** Data Of Scene */,
     atLastScene: boolean, /** If At Last scene, next button will be disabled */
     goToNextScene: Function,
-    hasUserAlreadyTookTest: boolean | null
+    hasUserAlreadyTookTest: boolean | null,
+    invalidId: boolean
 }
 
-function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTest } : SceneProps) {
+function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTest, invalidId } : SceneProps) {
     const [loading, setLoading] = React.useState<boolean>(true)
     /** 0 = Response not submitted */
     const [responseStatus, setResponseStatus] = React.useState<ResponseStatusType>({
@@ -24,12 +27,13 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     })
     const [scenarioMd, setScenarioMd] = React.useState<string>(`Failed to load data`)
     const [instructionMd, setInstructionMd] = React.useState<string>(`Failed to load data`)
+    const [completionToken, setCompletionToken] = React.useState<string>('')
     const [policyInput, setPolicyInput] = React.useState<string>('')
     const [startingTime, setStartingTime] = React.useState<number>((new Date()).getTime())
     const [testFinished, setTestFinished] = React.useState<boolean>(false)
 
     React.useEffect(() => {
-        console.log(scene, atLastScene)
+        console.log("Scene", scene)
         if (scene && hasUserAlreadyTookTest !== null) {
             setResponseStatus({
                 status: 'not_submitted',
@@ -43,6 +47,15 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
         }
     }, [scene, hasUserAlreadyTookTest])
 
+    React.useEffect(() => {
+        if (hasUserAlreadyTookTest) {
+            setLoading(true)
+            generateCandidateCompletionToken(userId).then(res => {
+                setCompletionToken(res)
+                setLoading(false)
+            })
+        }
+    }, [hasUserAlreadyTookTest])
     
 
     const handleSubmit = () => {
@@ -57,7 +70,15 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
             sceneName: scene ? scene.data.name : '',
             answer: policyInput
         }
-        createResponse(userResponse).then((res) => {
+        createResponse(userResponse).then(async (res) => {
+            if (atLastScene) {
+                try {
+                    const token = await generateCandidateCompletionToken(userId)
+                    setCompletionToken(token)
+                } catch (e) {
+                    console.log("Failed to generate completion token", e)
+                }
+            } 
             if (res) {
                 setResponseStatus({
                     status: 'successful',
@@ -82,87 +103,102 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     }
   return (
     <Wrapper>
-        {
-            !hasUserAlreadyTookTest ? (
-                !testFinished ? (
-                    <>
-                    {!loading ? 
-                    (
-                        <div className='content-container'>
-                            {
-                                responseStatus.status == 'loading' && (
-                                    <div className="loading submit-loading">
-                                        <h1>{responseStatus.message}</h1>
-                                        <img src={PreLoader} />
-                                    </div>
-                                )
-                            }
-                            {
-                                (responseStatus.status == 'successful' || responseStatus.status == 'failed') && (
-                                    <div className="loading submit-loading">
-                                        <h1>{responseStatus.message}</h1>
-                                        {atLastScene ? 
-                                            <Button variant="contained" onClick={handleFinish}>Finish</Button> : 
-                                            <Button variant="contained" onClick={handleGoToNextScene}>Next Scene</Button> 
-                                        }
-                                    </div>
-                                )
-                            }
-                            <div className='heading-label'>
-                                No Training Mockup
-                            </div>
-                            <div className='content'>
-                                <div className="column">
-                                    <div className='scenario'>
-                                        <h1>Scenario</h1>
-                                        <ReactMarkdown children={scenarioMd}  />
-                                    </div>
+        
+        {!invalidId ? 
+            <>
+                {!hasUserAlreadyTookTest ? (
+                    !testFinished ? (
+                        <>
+                        {!loading ? 
+                        (
+                            <div className='content-container'>
+                                {
+                                    responseStatus.status == 'loading' && (
+                                        <div className="loading submit-loading">
+                                            <h1>{responseStatus.message}</h1>
+                                            <img src={PreLoader} />
+                                        </div>
+                                    )
+                                }
+                                {
+                                    (responseStatus.status == 'successful' || responseStatus.status == 'failed') && (
+                                        <div className="loading submit-loading">
+                                            <h1>{responseStatus.message}</h1>
+                                            {atLastScene ? 
+                                                <Button variant="contained" onClick={handleFinish}>Finish</Button> : 
+                                                <Button variant="contained" onClick={handleGoToNextScene}>Next Scene</Button> 
+                                            }
+                                        </div>
+                                    )
+                                }
+                                <div className='heading-label'>
+                                    <div className='userId'>User Id: <TextCopier text={userId} /></div>
+                                    {/* <div>No Training Mockup</div> */}
                                 </div>
-                                <div className="column">
-                                    <div className='instruction'>
-                                        <h1>Instruction</h1>
-                                        <ReactMarkdown children={instructionMd}  />
+                                <div className='content'>
+                                    <div className="column">
+                                        <div className='scenario'>
+                                            <h1>Scenario</h1>
+                                            <ReactMarkdown children={scenarioMd}  />
+                                        </div>
                                     </div>
-                                    <div className='input-container'>
-                                        <h1>Answer</h1>
-                                        <TextField
-                                            id="outlined-multiline-static"
-                                            label="Policy Input"
-                                            multiline
-                                            rows={4}
-                                            placeholder="If Presence is set to 'Away' then smart door must be locked"
-                                            value={policyInput}
-                                            onChange={e => setPolicyInput(e.target.value)}
-                                        />
-                                        <div>
-                                            <Button variant="contained" onClick={handleSubmit}>Submit</Button>
+                                    <div className="column">
+                                        <div className='instruction'>
+                                            <h1>Instruction</h1>
+                                            <ReactMarkdown children={instructionMd}  />
+                                        </div>
+                                        <div className='input-container'>
+                                            <h1>Answer</h1>
+                                            <TextField
+                                                id="outlined-multiline-static"
+                                                label="Policy Input"
+                                                multiline
+                                                rows={4}
+                                                placeholder="If Presence is set to 'Away' then smart door must be locked"
+                                                value={policyInput}
+                                                onChange={e => setPolicyInput(e.target.value)}
+                                            />
+                                            <div>
+                                                <Button variant="contained" onClick={handleSubmit}>Submit</Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
-                            
+                            ) :
+                            (
+                                <div className='loading'>
+                                    <h1>Loading Data</h1>
+                                    <img src={PreLoader} />
+                                </div>
+                            )
+                        }
+                        </>
+                    ) : (
+                        <div className='instructions'>
+                            <p>Here is your completion token</p>
+                            <TextCopier text={completionToken} />
+                            <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
+                            <p>Thank you for taking part in the test! Your help will play a crucial role in science</p>
                         </div>
-                        ) :
-                        (
-                            <div className='loading'>
-                                <h1>Loading Data</h1>
-                                <img src={PreLoader} />
-                            </div>
-                        )
-                    }
-                    </>
+                    )
                 ) : (
-                    <div className='loading'>
-                        <p>Thank you for taking part in the test! Your help will play a crucial role in science</p>
+                    <div className='instructions'>
+                        <h1>You Already Took the test!</h1>
+                        <p>Here is your completion token</p>
+                        <TextCopier text={completionToken} />
+                        <p><i>Note: Please copy this completion token and submit to your AWS mechanical turk account to complete the survey and receive any compensation (if Available), you may also be able to login with your user id and retreive your completion token</i></p>
+                        <p>Every user with can only take the test ony one time. Thank you for your interest!</p>
                     </div>
-                )
-            ) : (
-                <div className='loading'>
-                    <h1>You Already Took the test!</h1>
-                    <p>Every user with can only take the test ony one time. Thank you for your interest!</p>
-                </div>
-            )
+                )}
+            </> : 
+            <div className='loading'>
+                <h1>Invalid ID!</h1>
+                <p>Seems like you have put a wrong user ID.</p>
+            </div>
         }
+            
     </Wrapper>
   )
 }
@@ -188,10 +224,15 @@ const Wrapper = styled.div`
         .heading-label {
             margin-bottom: 15px;
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             padding: 10px 10px;
             box-sizing: border-box;
+        }
+        .userId {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .scenario {
             flex: 1;
@@ -236,6 +277,25 @@ const Wrapper = styled.div`
         justify-content: center;
         align-items: center;
         z-index: 10;
+    }
+    .instructions {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        flex-direction: column;
+        gap: 10px;
+        padding: 100px 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        max-width: 700px;
+        margin: 0 auto;
     }
 `
 

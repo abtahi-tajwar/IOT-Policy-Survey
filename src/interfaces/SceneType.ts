@@ -5,6 +5,7 @@ export interface SceneGetType {
         order: number,
         instruction_markdown: string,
         scenario_markdown: string,
-        active: boolean
+        active: boolean,
+        groupId: string
     },
 }
