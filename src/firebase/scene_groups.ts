@@ -40,3 +40,16 @@ export const updateSceneGroupTotalUser = (docId: string) => {
         }
     })
 }
+export const getCandidateSceneGroup = (candidateId: string) => {
+    return new Promise (async (resolve : (arg: string) => void, reject) => {
+        const db = getFirestore()
+        try {
+            const docRef = doc(db, "candidates", candidateId)
+            const docSnap = await getDoc(docRef)
+            const docData = docSnap.data()
+            resolve( docData?.assignedGroup ?? null )
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
