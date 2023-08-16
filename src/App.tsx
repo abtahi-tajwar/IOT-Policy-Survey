@@ -10,7 +10,7 @@ import { getCandidateSceneGroup } from './firebase/scene_groups'
 import { getLessonsBySceneGroup } from './firebase/lessons'
 import { LessonsGetType } from './interfaces/LessonType'
 import Loader from './components/Loader'
-import Training from './components/Training'
+import Training from './components/Training/Training'
 
 function App() {
   const queryParams = new URLSearchParams(window.location.search)
