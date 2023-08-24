@@ -1,8 +1,48 @@
 export interface LessonsGetType {
     id: string,
+    data: (MCQLessonDataType & DnDLessonDataType)
+}
+interface MCQLessonDataType {
+    name: string,
+    type: ('mcq'|'dnd'),
+    trainingId: string,
+    instructions: {
+        description: string,
+        title: string
+    },
+    questions: [
+        {
+            question: string,
+            answer: {
+                explanation: string,
+                index: number
+            },
+            image: string,
+            options: Array<string>
+        }
+    ]
+}
+interface DnDLessonDataType {
+    name: string,
+    type: ('mcq'|'dnd'),
+    trainingId: string,
+    instructions: {
+        description: string,
+        title: string
+    },
+    options: Array<string>,
+    blanks: [
+        {
+            answers: Array<string>,
+            question: Array<string>  
+        }
+    ]
+}
+export interface MCQLessonsGetType {
+    id: string,
     data: {
         name: string,
-        type: string,
+        type: ('mcq'|'dnd'),
         traininigId: string,
         instructions: {
             description: string,
@@ -16,5 +56,40 @@ export interface LessonsGetType {
                 options: Array<string>
             }
         ]
+    }
+} 
+export interface DnDLessonsGetType {
+    id: string,
+    data: {
+        name: string,
+        type: ('mcq'|'dnd'),
+        traininigId: string,
+        instructions: {
+            description: string,
+            title: string
+        },
+        options: Array<string>,
+        blanks: [
+            {
+              answers: Array<string>,
+              question: Array<string>  
+            }
+        ]
+    }
+}
+export interface DnDResponseType {
+    index: number,
+    answer: string
+}
+export interface CandidateLessonResponseType {
+    id: string,
+    data: {
+        lesson: {
+            id: string,
+            type: string
+        },
+        responses: Array<DnDResponseType | number>,
+        score: number,
+        total: number
     }
 }

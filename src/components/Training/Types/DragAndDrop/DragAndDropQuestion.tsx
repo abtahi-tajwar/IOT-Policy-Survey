@@ -1,5 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
+import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
+import { updateResponse } from "../../../../redux/slices/lesson_response";
 
 interface OptionType {
   label: string,
@@ -7,7 +9,7 @@ interface OptionType {
 }
 interface BlankType {
   index: number,
-  answer: OptionType
+  answer: string
 }
 interface DraggedOption {
   hasDropped: boolean,
@@ -15,31 +17,40 @@ interface DraggedOption {
 }
 
 function DragAndDropQuestion() {
-
-  const [options, setOptions] = useState<Array<OptionType>>([
-    { label: "If", value: "if" },
-    { label: "Then", value: "then" },
-    { label: "And", value: "and" },
-    { label: "Or", value: "or" },
-    { label: "But", value: "but" },
-  ])
+  const lessonState = useAppSelector(data => data.lesson)
+  const currentLesson = lessonState.lessons[lessonState.lessonNavigationIndex]
+  const dispatch = useAppDispatch()
+  const [options, setOptions] = useState<Array<string>>([ 'if', 'then', 'and', 'or', 'but' ])
   const [blanks, setBlanks] = useState<Array<Array<BlankType | string>>>([
-    [ {index: 0, answer: { label: '', value: ''} }, ' Fire Sprinkler is on ', {index: 1, answer: { label: '', value: ''} }, ' Water Valve is on' ],
-    [ {index: 0, answer: { label: '', value: ''} }, ' Heater is on ', {index: 1, answer: { label: '', value: ''} }, ' Air Conditioner is of.' ],
+    [ {index: 0, answer: '' }, ' Fire Sprinkler is on ', {index: 1, answer: '' }, ' Water Valve is on' ],
+    [ {index: 0, answer: '' }, ' Heater is on ', {index: 1, answer: '' }, ' Air Conditioner is of.' ],
   ])
-  const [currentDraggedItem, setCurrentDraggedItem] = useState<OptionType | null>(null)
+  const [currentDraggedItem, setCurrentDraggedItem] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (currentLesson) {
+      setOptions(currentLesson.data.options)
+      setBlanks(currentLesson.data.blanks.map((blank, bi) => {
+        let blankIndex = -1
+        return blank.question.map(part => {
+          if (part === '{{blank}}')  {
+            blankIndex += 1
+            return { index: blankIndex, answer: '' }
+          }
+          return part
+        })
+      }))
+    }
+  }, [currentLesson])
 
   const handleDragStart = (e: any) => {
-    setCurrentDraggedItem({
-      label: e.target.innerHTML,
-      value: e.target.dataset.value
-    })
+    setCurrentDraggedItem(e.target.dataset.value)
     e.dataTransfer.setData('application/json', {
       label: e.target.innerHTML,
       value: e.target.dataset.value
     });
   }
-  const handleDrop = (e:any, blankIndex: number, part: BlankType) => {
+  const handleDrop = (blankIndex: number, part: BlankType) => {
     console.log("Dropped blank information", blankIndex, part)
     setBlanks(prevState => prevState.map((blank, i) => {
       if (i === blankIndex) {
@@ -48,7 +59,7 @@ function DragAndDropQuestion() {
             if (p.index === part.index) {
               return {
                 ...p,
-                answer: currentDraggedItem ?? { value: '', label: '' }
+                answer: currentDraggedItem ?? ''
               }
             }
             return p
@@ -58,7 +69,7 @@ function DragAndDropQuestion() {
       }
       return blank
     }))
-    setOptions(options.filter(o => o.value !== currentDraggedItem?.value))
+    setOptions(options.filter(o => o !== currentDraggedItem))
   }
 
   function removeAnswer(blankIndex: number, part: BlankType): void {
@@ -70,7 +81,7 @@ function DragAndDropQuestion() {
             if (p.index === part.index) {
               return {
                 ...p,
-                answer: { value: '', label: '' }
+                answer: ''
               }
             }
             return p
@@ -82,6 +93,10 @@ function DragAndDropQuestion() {
     }))
   }
 
+  useEffect(() => {
+    dispatch(updateResponse( blanks.map(blank => blank.filter(part => typeof part !== 'string')) as Array<Array<BlankType>> ))
+  }, [blanks])
+
   return (
     <Wrapper>
       <div className="label">
@@ -92,13 +107,13 @@ function DragAndDropQuestion() {
         <div className="options drag_items">
           { options.map(option => (
               <div 
-                key={option.value} 
+                key={option} 
                 className="option" 
-                data-value={option.value} 
+                data-value={option} 
                 onDragStart={handleDragStart} 
                 draggable
               >
-                  {option.label}
+                  {option}
               </div>
             )) 
           }
@@ -108,31 +123,31 @@ function DragAndDropQuestion() {
             blanks.map((blank, blankIndex) => (
               <li key={blankIndex}>
                 {
-                  blank.map((part) => (
+                  blank.map((part, pi) => (
                     (typeof part !== 'string' && Object.hasOwn(part, 'answer')) ? (
                       <span 
-                        key={part.index} 
+                        key={pi} 
                         data-index={part.index}
                         onDragOver={e => e.preventDefault()}
                         onDragEnter={e => e.preventDefault()}
                         onDragLeave={e => e.preventDefault()}
-                        onDrop={(e) => handleDrop(e, blankIndex, part)}
+                        onDrop={(e) => handleDrop(blankIndex, part)}
                       >
                         { 
-                          part.answer.value === '' ? 
+                          part.answer === '' ? 
                             <>_______</> : 
                             <span 
                               className="gap-answer"
-                              data-value={part.answer.value}
+                              data-value={part.answer}
                               onClick={() => removeAnswer(blankIndex, part)}
-                            >{part.answer.label}</span> 
+                            >{part.answer}</span> 
                         }
                       </span>
                     ) :
                     (
-                      <>
-                        {part}
-                      </>
+                      <span key={pi}>
+                        {(typeof part === 'string') && part}
+                      </span>
                     )
                   ))
                 }

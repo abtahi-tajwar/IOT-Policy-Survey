@@ -1,44 +1,85 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
 import styled from "@emotion/styled";
+import { Box } from "@mui/material";
+import { useAppDispatch, useAppSelector } from "../../../../redux/hooks";
+import { updateResponse } from "../../../../redux/slices/lesson_response";
+
+interface MCQQuestionType {
+    question: string,
+    options: Array<string>,
+    response: number
+}
 
 function MCQQuestions() {
+    const lessonState = useAppSelector(data => data.lesson)
+    const currentLesson = lessonState.lessons[lessonState.lessonNavigationIndex]
+    const dispatch = useAppDispatch()
+    const [questions, setQuestions] = useState<Array<MCQQuestionType>>([])
+
+    useEffect(() => {
+        dispatch(updateResponse(questions.map(q => q.response)))
+        // setAnswers(questions.map(q => q.response))
+    }, [questions])
+
+    useEffect(() => {
+        if (currentLesson && currentLesson.data.type === 'mcq') {
+            setQuestions(currentLesson.data.questions.map(question => ({
+                question: question.question,
+                options: question.options,
+                response: -1
+            })))
+        }
+    }, [currentLesson])
+
+    const handleResponse = (questionIndex: number, optionIndex: number) => {
+        setQuestions(prevState => prevState.map((question, qi) => {
+            if (questionIndex === qi) {
+                return {
+                    ...question,
+                    response: optionIndex
+                }
+            } 
+            return question
+        }))
+    }
+    
   return (
     <Wrapper>
         <div className="label">
           <h2>MCQ Questions</h2>
           <h3>Answer the following questions</h3>
         </div>
-        <FormControl>
-            <FormLabel id="demo-radio-buttons-group-label">
-                1. What is your favourite pet's name?
-            </FormLabel>
-            <RadioGroup
-                aria-labelledby="demo-radio-buttons-group-label"
-                defaultValue="female"
-                name="radio-buttons-group"
-            >
-                <FormControlLabel
-                    value="lambo"
-                    control={<Radio />}
-                    label="Lamborghini"
-                />
-                <FormControlLabel
-                    value="bughatti"
-                    control={<Radio />}
-                    label="Bughatti"
-                />
-                <FormControlLabel 
-                    value="other" 
-                    control={<Radio />} 
-                    label="Other" 
-                />
-            </RadioGroup>
-        </FormControl>
+        <Box sx={{ ml: 2 }}>
+        {questions.map((question, qi) => (
+           <FormControl key={qi}> 
+                <FormLabel id="demo-radio-buttons-group-label">
+                    {qi+1}. {question.question}
+                </FormLabel>
+                <RadioGroup
+                    aria-labelledby="demo-radio-buttons-group-label"
+                    defaultValue="female"
+                    name="radio-buttons-group"
+                >
+                    {
+                        question.options.map((o, oi) => (
+                            <FormControlLabel
+                                value={o}
+                                control={<Radio />}
+                                label={o}
+                                onChange={() => handleResponse(qi, oi)}
+                                checked={question.response === oi}
+                            />
+                        ))
+                    }
+                </RadioGroup>
+            </FormControl>
+        ))}
+        </Box>
     </Wrapper>
   );
 }

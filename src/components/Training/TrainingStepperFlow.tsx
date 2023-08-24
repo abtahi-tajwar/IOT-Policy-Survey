@@ -1,16 +1,68 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { Button as MuiButton } from "@mui/material";
 import DragonAndDropIcon from "../../assets/Lessons/drag_and_drop.svg";
 import BrainIcon from "../../assets/Lessons/brain.svg";
 import PuzzleIcon from "../../assets/Lessons/puzzle.svg";
 import CompletedIcon from "../../assets/Lessons/completed.svg";
+import { CandidateLessonResponseType } from "../../interfaces/LessonType";
+import { useAppSelector } from "../../redux/hooks";
+
+interface LessonsStepperFlowStateType {
+  lessonType: ('dnd' | 'mcq'),
+  isCompleted: boolean,
+  isCurrent: boolean
+}
 
 function TrainingStepperFlow() {
+
+  const lessonState = useAppSelector(data => data.lesson)
+  const [lessonsStepperFlowState, setLessonsStepperFlowState] = useState<Array<LessonsStepperFlowStateType>>([])
+
+  const TypeIconSrcMap = {
+    dnd: DragonAndDropIcon,
+    mcq: BrainIcon
+  }
+
+  useEffect(() => {
+    if (lessonState.lessons) {
+      setLessonsStepperFlowState(lessonState.lessons.map((l, li) => {
+        if (lessonState.lessonResponses?.find(ccl => ccl.data.lesson.id === l.id)) {
+          return {
+            lessonType: l.data.type,
+            isCompleted: true,
+            isCurrent: lessonState.currentLessonIndex === li ? true : false
+          }
+        }
+        return {
+          lessonType: l.data.type,
+          isCompleted: false,
+          isCurrent: lessonState.currentLessonIndex === li ? true : false
+        }
+      }))
+    }
+  }, [lessonState.lessonResponses])
+  
+
   return (
     <Wrapper>
       <div className="stepper-flow">
-        <div className="stepper-flow-item completed">
+        {
+          lessonsStepperFlowState.map((sf, sfi) => (
+            sf.isCompleted
+              ? <div key={sfi} className="stepper-flow-item completed">
+                <div className="icon-container">
+                  <img src={CompletedIcon} />
+                </div>
+              </div>
+              : <div key={sfi} className={`stepper-flow-item ${lessonState.lessonNavigationIndex === sfi && 'current'}`}>
+                <div className="icon-container">
+                  <img src={TypeIconSrcMap[sf.lessonType]} />
+                </div>
+              </div>
+          ))
+        }
+        {/* <div className="stepper-flow-item completed">
           <div className="icon-container">
             <img src={CompletedIcon} />
           </div>
@@ -29,7 +81,7 @@ function TrainingStepperFlow() {
           <div className="icon-container">
             <img src={PuzzleIcon} />
           </div>
-        </div>
+        </div> */}
       </div>
     </Wrapper>
   );
@@ -87,6 +139,11 @@ const Wrapper = styled.div`
       }
       &::after {
         background-color: #14a44d;
+      }
+    }
+    &-item.current {
+      .icon-container {
+        border: 1px solid black;
       }
     }
   }

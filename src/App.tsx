@@ -11,6 +11,8 @@ import { getLessonsBySceneGroup } from './firebase/lessons'
 import { LessonsGetType } from './interfaces/LessonType'
 import Loader from './components/Loader'
 import Training from './components/Training/Training'
+import { useAppDispatch } from './redux/hooks'
+import { getLessons } from './redux/slices/lesson'
 
 function App() {
   const queryParams = new URLSearchParams(window.location.search)
@@ -24,12 +26,16 @@ function App() {
   const [invalidId, setInvalidId] = useState<boolean>(false)
   const [lessonsLoading, setLessonsLoading] = useState<boolean>(true)
   const [lessons, setLessons] = useState<Array<LessonsGetType> | null>(null)
-
+  const [navigateToLesson, setNavigateToLesson] = useState<boolean>(true)
+  const dispatch = useAppDispatch()
   useEffect(() => {
     if (userId) {
       setLessonsLoading(true)
       // Fetching lessons after getting userId
       getCandidateSceneGroup(userId).then((scenarioGroupId : string) => { // Fetching candidate scene group which determines the training id
+        dispatch(getLessons(scenarioGroupId)).then(res => {
+          setLessonsLoading(false)
+        })
         getLessonsBySceneGroup(scenarioGroupId).then(res => { // Fetching all the lessons relevent to that training Id
           setLessonsLoading(false)
           setLessons(res)
@@ -76,14 +82,14 @@ function App() {
       {userId ? (
         <Loader isLoading={lessonsLoading}>
           {!lessonsLoading &&
-            (!lessons ? <Scene 
+            (!navigateToLesson ? <Scene 
               userId={userId}
               scene={currentScene}
               atLastScene={atLastScene}
               goToNextScene={goToNextScene}
               hasUserAlreadyTookTest={hasUserAlreadyTookTest}
               invalidId={invalidId}
-            /> : <Training lessons={lessons} />)
+            /> : <Training candidateId={userId} setNavigateToLesson={setNavigateToLesson} />)
           }
         </Loader>
        ) :

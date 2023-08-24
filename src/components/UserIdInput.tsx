@@ -4,22 +4,27 @@ import { TextField, Button } from '@mui/material'
 import { createNewCandidate } from '../firebase/candidates'
 import Amazon_MC_TURK_IMAGE from '../assets/amazon_mc_turk.jpg'
 import { DocumentReference, DocumentData } from 'firebase/firestore'
+import { useAppDispatch } from '../redux/hooks'
+import { updateCandidateId } from '../redux/slices/candidate'
 
 interface UserIdInputType {
     setUserId: Function
 }
 
 function UserIdInput({ setUserId } : UserIdInputType) {
+    const dispatch = useAppDispatch()
     const [input, setInput] = React.useState<string>('3YJhs7gZfyBm5LjqtWEm')
     const [submitLoading, setSubmitLoading] = React.useState<boolean>(false)
     const handleSubmit = (newUser: Boolean) => {
         if (!newUser) {
             setUserId(input.trim())
+            dispatch(updateCandidateId(input.trim()))
         } else {
             setSubmitLoading(true)
             createNewCandidate().then((user : DocumentReference<DocumentData>) => {
                 console.log("New candidate created", user)
                 setUserId(user.id)
+                dispatch(updateCandidateId(user.id))
                 setSubmitLoading(false)
             }).catch(e => {
                 console.log("Something went wrong while registering candidate", e)
