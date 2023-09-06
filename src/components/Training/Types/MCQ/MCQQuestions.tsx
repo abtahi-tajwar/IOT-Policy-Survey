@@ -56,7 +56,7 @@ function MCQQuestions() {
         </div>
         <Box sx={{ ml: 2 }}>
         {questions.map((question, qi) => (
-           <FormControl key={qi}> 
+           <FormControl key={qi} sx={{ display: 'block', mb: 2 }}> 
                 <FormLabel id="demo-radio-buttons-group-label">
                     {qi+1}. {question.question}
                 </FormLabel>

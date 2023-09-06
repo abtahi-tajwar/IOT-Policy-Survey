@@ -88,7 +88,7 @@ export interface CandidateLessonResponseType {
             id: string,
             type: string
         },
-        responses: Array<DnDResponseType | number>,
+        responses: Array<Array<DnDResponseType> | number>,
         score: number,
         total: number
     }

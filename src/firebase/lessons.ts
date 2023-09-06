@@ -24,10 +24,8 @@ export const getLessonsBySceneGroup = (scenarioGroupId: string) => {
             const trainingId = scenarioGroupData?.trainingId ?? null
 
             if (trainingId) {
-                console.log("Training Id for lesson", trainingId)
-                const q = query(collection(db, "lessons"), where('trainingId', '==', trainingId.trim()))
+                const q = query(collection(db, "lessons"), where('assignedTrainingIds', 'array-contains', trainingId.trim()))
                 const querySnapshot = await getDocs(q)
-                console.log("lessons query snapshot", querySnapshot)
 
                 const lessons : Array<LessonsGetType> = []
                 querySnapshot.forEach(item => {
@@ -37,7 +35,7 @@ export const getLessonsBySceneGroup = (scenarioGroupId: string) => {
                         data: {
                             name: data.name,
                             type: data.type,
-                            trainingId: data.trainingId,
+                            trainingId: trainingId,
                             instructions: {
                                 description: data.instructions.description,
                                 title: data.instructions.title
