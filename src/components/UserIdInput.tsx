@@ -13,7 +13,7 @@ interface UserIdInputType {
 
 function UserIdInput({ setUserId } : UserIdInputType) {
     const dispatch = useAppDispatch()
-    const [input, setInput] = React.useState<string>('3YJhs7gZfyBm5LjqtWEm')
+    const [input, setInput] = React.useState<string>('IEZhx4Gb4sJ5rN1LArjr')
     const [submitLoading, setSubmitLoading] = React.useState<boolean>(false)
     const handleSubmit = (newUser: Boolean) => {
         if (!newUser) {

@@ -7,6 +7,9 @@ import DragAndDropQuestion from "./Types/DragAndDrop/DragAndDropQuestion";
 import DragAndDropAnswer from "./Types/DragAndDrop/DragAndDropAnswer";
 import { useAppSelector } from "../../redux/hooks";
 import Loader from "../Loader";
+import DemographicsQuestion from "./Types/Demographics/DemographicsQuestion";
+import AttentionCheckQuestion from "./Types/AttentionCheck/AttentionCheckQuestion";
+import { LessonsGetType } from "../../interfaces/LessonType";
 
 interface TrainingContentPropsType {
   pageType: ('instruction' | 'question' | 'answer')
@@ -15,29 +18,36 @@ interface TrainingContentPropsType {
 function TrainingContent({ pageType } : TrainingContentPropsType) {
     const lessonState = useAppSelector(data => data.lesson)
     const [isAnswerPage, setIsAnswerPage] = useState<boolean>(true)
-    const [trainingType, setTrainingType] = useState<"mcq" | "dnd" | null>(null)
+    const [trainingType, setTrainingType] = useState<"mcq" | "dnd" | "demographics" | "attention_check" | null>(null)
+    const [currentLesson, setCurrentLesson] = useState<LessonsGetType | null>(null)
 
     const questionTypeComponents = {
         mcq: <MCQQuestions />,
-        dnd: <DragAndDropQuestion />
+        dnd: <DragAndDropQuestion />,
+        demographics: <DemographicsQuestion />,
+        attention_check: <AttentionCheckQuestion />
     }
 
     const answerTypeComponents = {
         mcq: <MCQAnswers />,
-        dnd: <DragAndDropAnswer />
+        dnd: <DragAndDropAnswer />,
+        demographics: null,
+        attention_check: null
     }
 
     useEffect(() => {
       if (lessonState.lessons[lessonState.lessonNavigationIndex]) {
+        setCurrentLesson(lessonState.lessons[lessonState.lessonNavigationIndex])
         setTrainingType(lessonState.lessons[lessonState.lessonNavigationIndex].data.type)
       }
     }, [lessonState.lessonNavigationIndex])
+
   return (
     <Loader isLoading={!trainingType}>
       {trainingType && <Wrapper>
-        <div className="main-image-container">
+        { currentLesson?.data.image && <div className="main-image-container">
           <img src={MainImageSource} />
-        </div>
+        </div> }
         <div className="content-container">
           {
               pageType !== 'answer' ? (

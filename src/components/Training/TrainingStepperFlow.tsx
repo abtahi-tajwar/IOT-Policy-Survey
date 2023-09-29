@@ -4,12 +4,14 @@ import { Button as MuiButton } from "@mui/material";
 import DragonAndDropIcon from "../../assets/Lessons/drag_and_drop.svg";
 import BrainIcon from "../../assets/Lessons/brain.svg";
 import PuzzleIcon from "../../assets/Lessons/puzzle.svg";
+import AttentionIcon from '../../assets/Lessons/attention.svg'
+import InfoIcon from '../../assets/Lessons/info.svg'
 import CompletedIcon from "../../assets/Lessons/completed.svg";
 import { CandidateLessonResponseType } from "../../interfaces/LessonType";
 import { useAppSelector } from "../../redux/hooks";
 
 interface LessonsStepperFlowStateType {
-  lessonType: ('dnd' | 'mcq'),
+  lessonType: ('dnd' | 'mcq' | 'demographics' | 'attention_check' ),
   isCompleted: boolean,
   isCurrent: boolean
 }
@@ -21,7 +23,9 @@ function TrainingStepperFlow() {
 
   const TypeIconSrcMap = {
     dnd: DragonAndDropIcon,
-    mcq: BrainIcon
+    mcq: BrainIcon,
+    demographics: InfoIcon,
+    attention_check: AttentionIcon
   }
 
   useEffect(() => {

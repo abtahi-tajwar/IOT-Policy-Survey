@@ -39,10 +39,11 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
 
     const dispatch = useAppDispatch()
     const lessonState = useAppSelector(data => data.lesson)
-    const lessonResponse = useAppSelector<Array<number | Array<DndBlankType>>>(data => data.lessonResponse.data)
+    const typesWithoutAnswerPage = ['demographics', 'attention_check']
+    const lessonResponse = useAppSelector<Array<number | Array<DndBlankType> | string>>(data => data.lessonResponse.data)
     const [submitAnswerLoading, setSubmitAnswerLoading] = useState<boolean>(false)
     const [lessonNavigationLoading, setLessonNavigationLoading] = useState<boolean>(false)
-    const [pageType, setPageType] = useState<'instruction' | 'question' | 'answer'>('instruction')
+    const [pageType, setPageType] = useState<'instruction' | 'question' | 'answer' | null>(null)
 
     useEffect(() => {
       dispatch(getLessonResponse(candidateId)).then(() => {
@@ -52,6 +53,13 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
     }, [])
 
     useEffect(() => {
+      if (lessonState.lessonNavigationIndex !== -1) {
+        if (!lessonState.lessons[lessonState.lessonNavigationIndex]?.data?.instructions) {
+          setPageType('question')
+        } else {
+          setPageType('instruction')
+        }
+      }
       if (lessonState.lessonNavigationIndex === -1 || lessonState.lessonNavigationIndex === lessonState.lessons.length) {
         setNavigateToLesson(false)
       }
@@ -92,7 +100,12 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
         console.log("Lesson repsonse data", lessonResponseData )
         submitLessonResponse(lessonResponseData).then(() => {
           setSubmitAnswerLoading(false)
-          setPageType('answer')
+          const _lessonType = lessonState.lessons[lessonState.lessonNavigationIndex].data.type
+          if (!typesWithoutAnswerPage.includes(_lessonType)) {
+            setPageType('answer')
+          } else {
+            handleAnswerNext()
+          }
         }).catch(e => {
           console.log("Failed to submit responses", e)
         })
@@ -105,7 +118,7 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
       setLessonNavigationLoading(true)
       navigateLesson().then(() => {
         setLessonNavigationLoading(false)
-        setPageType('instruction')
+        // setPageType('instruction')
       })
     }
     
@@ -132,10 +145,12 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
       return { score, total }
     }
   return (
-    <Loader isLoading={lessonState.loading.initializeNavigationIndex}>
+    <Loader isLoading={lessonState.loading.initializeNavigationIndex || !pageType}>
       <Wrapper>
-        <div className="container">
-          {pageType === 'instruction' ? 
+        { pageType && <div className="container">
+          {(
+            pageType === 'instruction'
+          ) ? 
             <TrainingInstruction /> : 
             <TrainingContent pageType={pageType}/> 
           }
@@ -172,7 +187,7 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
               )
             }
           </div>
-        </div>
+        </div> }
       </Wrapper>
     </Loader>
   )

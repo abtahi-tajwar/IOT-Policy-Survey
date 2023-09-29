@@ -4,7 +4,7 @@ interface DndBlankType {
   answer: string;
 }
 interface IntialStateType {
-  data: Array<number | Array<DndBlankType>>
+  data: Array<number | string | Array<DndBlankType>>
 }
 const initialState : IntialStateType = {
   data: []
@@ -13,7 +13,7 @@ export const lessonResponseSlice = createSlice({
   name: 'lessonResponse',
   initialState,
   reducers: {
-    updateResponse: (state, action : PayloadAction<Array<number | Array<DndBlankType>>>) => {
+    updateResponse: (state, action : PayloadAction<Array<number | string | Array<DndBlankType>>>) => {
       state.data = action.payload
     }
   },

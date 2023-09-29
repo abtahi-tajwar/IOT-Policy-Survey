@@ -4,9 +4,10 @@ export interface LessonsGetType {
 }
 interface MCQLessonDataType {
     name: string,
-    type: ('mcq'|'dnd'),
+    type: ('mcq'|'dnd'|'demographics'|'attention_check'),
     trainingId: string,
-    instructions: {
+    image: string,
+    instructions?: {
         description: string,
         title: string
     },
@@ -24,8 +25,9 @@ interface MCQLessonDataType {
 }
 interface DnDLessonDataType {
     name: string,
-    type: ('mcq'|'dnd'),
+    type: ('mcq'|'dnd'|'demographics'|'attention_check'),
     trainingId: string,
+    image: string,
     instructions: {
         description: string,
         title: string

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import styled from '@emotion/styled'
 import ReactMarkdown from 'react-markdown'
 import { TextField, Button } from '@mui/material'
@@ -17,6 +17,10 @@ interface SceneProps {
     hasUserAlreadyTookTest: boolean | null,
     invalidId: boolean
 }
+interface ExtraAnswers {
+    scenarioAllowedByPolicy: string,
+    scenarioDeniedByPolicy: string
+}
 
 function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTest, invalidId } : SceneProps) {
     const [loading, setLoading] = React.useState<boolean>(true)
@@ -29,11 +33,15 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     const [instructionMd, setInstructionMd] = React.useState<string>(`Failed to load data`)
     const [completionToken, setCompletionToken] = React.useState<string>('')
     const [policyInput, setPolicyInput] = React.useState<string>('')
+    const [extraAnswers, setExtraAnswers] = React.useState<ExtraAnswers>({
+        scenarioAllowedByPolicy: '',
+        scenarioDeniedByPolicy: ''
+    })
     const [startingTime, setStartingTime] = React.useState<number>((new Date()).getTime())
     const [testFinished, setTestFinished] = React.useState<boolean>(false)
 
     React.useEffect(() => {
-        console.log("Scene", scene)
+        console.log("In page scene", scene, "hasUserAlreadyTookTest: ", hasUserAlreadyTookTest)
         if (scene && hasUserAlreadyTookTest !== null) {
             setResponseStatus({
                 status: 'not_submitted',
@@ -44,6 +52,11 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
             setLoading(false)
             setStartingTime((new Date()).getTime())
             setPolicyInput('')
+            setExtraAnswers({
+                scenarioAllowedByPolicy: '',
+                scenarioDeniedByPolicy: ''
+            })
+            console.log("Everything is running", scene)
         }
     }, [scene, hasUserAlreadyTookTest])
 
@@ -68,7 +81,11 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
             timeRequired: (new Date()).getTime() - startingTime,
             sceneId: scene ? scene.id : '',
             sceneName: scene ? scene.data.name : '',
-            answer: policyInput
+            answer: policyInput,
+            extraResponse: {
+                allowedScenario: extraAnswers.scenarioAllowedByPolicy,
+                deniedScenario: extraAnswers.scenarioDeniedByPolicy
+            }
         }
         createResponse(userResponse).then(async (res) => {
             if (atLastScene) {
@@ -98,6 +115,10 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     }
     const handleGoToNextScene = () => {
         if (!atLastScene) {
+            setResponseStatus({
+                status: 'not_submitted',
+                message: 'Your Response Is Not Attempted For Submission Yet'
+            })
             goToNextScene()
         }
     }
@@ -149,6 +170,8 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                                         </div>
                                         <div className='input-container'>
                                             <h1>Answer</h1>
+                                            {/* Policy Input */}
+                                            <label>Enter Your Policy</label>
                                             <TextField
                                                 id="outlined-multiline-static"
                                                 label="Policy Input"
@@ -158,6 +181,29 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                                                 value={policyInput}
                                                 onChange={e => setPolicyInput(e.target.value)}
                                             />
+
+                                            {/* Scenario allowed by policy */}
+                                            <label>Scenario when your policy allows an action</label>
+                                            <TextField
+                                                id="outlined-multiline-static"
+                                                label="Write allowed scenario"
+                                                multiline
+                                                rows={4}
+                                                value={extraAnswers.scenarioAllowedByPolicy}
+                                                onChange={e => setExtraAnswers(prevState => ({ ...prevState, scenarioAllowedByPolicy: e.target.value }) )}
+                                            />
+
+                                            {/* Scenario denied by policy */}
+                                            <label>Scenario when your policy disallows an action</label>
+                                            <TextField
+                                                id="outlined-multiline-static"
+                                                label="Write disallowed scenario"
+                                                multiline
+                                                rows={4}
+                                                value={extraAnswers.scenarioDeniedByPolicy}
+                                                onChange={e => setExtraAnswers(prevState => ({ ...prevState, scenarioDeniedByPolicy: e.target.value }) )}
+                                            />
+                                            
                                             <div>
                                                 <Button variant="contained" onClick={handleSubmit}>Submit</Button>
                                             </div>

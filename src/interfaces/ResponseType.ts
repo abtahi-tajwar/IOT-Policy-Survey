@@ -3,7 +3,12 @@ export interface ResponseType {
     timeRequired: number,
     sceneId: string,
     sceneName: string,
-    answer: string
+    answer: string,
+    extraResponse: {
+        allowedScenario: string,
+        deniedScenario: string
+    }
+    
 }
 export interface ResponseStatusType {
     status: "not_submitted" | "loading" | "successful" | "failed",
