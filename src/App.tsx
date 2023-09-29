@@ -42,8 +42,8 @@ function App() {
         })
       })
       getRemainingScenesForCandidate(userId).then((response : Array<SceneGetType>) => {
-        console.log("All scenes", response)
         setScenes(response)
+        checkIfLastScene(response.length, currentSceneIndex)
         if (response.length === 0) {
           setHasUserAlreadyTookTest(true)
         } else {
@@ -58,9 +58,8 @@ function App() {
 
   useEffect(() => {
     if (scenes) {
-      if (!checkIfLastScene(scenes.length, currentSceneIndex)) {
-        setCurrentScene(scenes[currentSceneIndex])
-      }
+      checkIfLastScene(scenes.length, currentSceneIndex)
+      setCurrentScene(scenes[currentSceneIndex])
     }
   }, [currentSceneIndex])
 

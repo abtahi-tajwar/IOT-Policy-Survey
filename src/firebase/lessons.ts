@@ -5,7 +5,7 @@ import { convertToFirestoreData } from "./FirebaseHelper";
 
 export interface SubmitLessonResponseArgument {
     candidateId: string, 
-    responses : Array<number | Array<DnDResponseType>>, 
+    responses : Array<number | string | Array<DnDResponseType>>, 
     lessonId: string, 
     lessonType: string,
     score: number,
@@ -24,10 +24,13 @@ export const getLessonsBySceneGroup = (scenarioGroupId: string) => {
             const trainingId = scenarioGroupData?.trainingId ?? null
 
             if (trainingId) {
+                const trainingDocSnap = await getDoc(doc(db, "trainings", trainingId))
+                const trainingData = trainingDocSnap.data()
                 const q = query(collection(db, "lessons"), where('assignedTrainingIds', 'array-contains', trainingId.trim()))
                 const querySnapshot = await getDocs(q)
 
                 const lessons : Array<LessonsGetType> = []
+                const orderedLessons : Array<LessonsGetType> = []
                 querySnapshot.forEach(item => {
                     const data = item.data()
                     lessons.push({
@@ -36,17 +39,36 @@ export const getLessonsBySceneGroup = (scenarioGroupId: string) => {
                             name: data.name,
                             type: data.type,
                             trainingId: trainingId,
-                            instructions: {
-                                description: data.instructions.description,
-                                title: data.instructions.title
-                            },
+                            ...(data.instructions && {
+                                instructions: {
+                                    description: data.instructions.description,
+                                    title: data.instructions.title
+                                }
+                            }),
+                            // instructions: {
+                            //     description: data.instructions.description,
+                            //     title: data.instructions.title
+                            // },
                             questions: data.questions,
                             options: data.options,
                             blanks: data.blanks
                         }
                     })
                 })
-                resolve(lessons)
+                if (trainingData) {
+                    trainingData.lessonIds.forEach((l_id : string) => {
+                        const _lesson = lessons.find(l => l.id === l_id)
+                        if (_lesson) {
+                            orderedLessons.push(_lesson)
+                        } else {
+                            throw new Error("All lesson ids are not recorded into the specific data at trainings.lessonIds collection. Please make sure to add all the assigned lesson ids to the array")
+                        }
+                    })
+                    resolve(orderedLessons)
+                } else {
+                    console.error("Unable to resolve training data which is important order the lesssons")
+                    resolve(lessons)
+                }
             } else {
                 resolve([])
             } 

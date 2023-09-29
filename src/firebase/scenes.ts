@@ -71,7 +71,6 @@ export function getRemainingScenesForCandidate (candidateId: string) {
                 let scenes : Array<SceneGetType> = []
                 const scenariosSnapshot = await getDocs(q)
                 scenariosSnapshot.forEach(scene => {
-                    console.log("Checking for existing responses", userResponses.find(ur => ur.sceneId === scene.id))
                     if (!userResponses.find(ur => ur.sceneId === scene.id)) {
                         scenes.push({
                             id: scene.id,

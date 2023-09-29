@@ -20,7 +20,7 @@ export const createNewCandidate = () => {
                 responses: 0,
                 completionToken: "",
                 surveyCompleted: false,
-                assignedGroup: sceneGroups[randomSceneIndex].id
+                assignedGroup: import.meta.env.VITE_ENVIRONMENT_TYPE === 'dev' ? import.meta.env.VITE_TESTING_SCENE_GROUP : sceneGroups[randomSceneIndex].id
             });
             await updateSceneGroupTotalUser(sceneGroups[randomSceneIndex].id)
             resolve(docRef)
