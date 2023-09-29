@@ -74,7 +74,11 @@ export function getAllUserResponse(userId: string) {
                 timeRequired: docData.timeRequired,
                 sceneId: docData.sceneId,
                 sceneName: docData.sceneName,
-                answer: docData.answer
+                answer: docData.answer,
+                extraResponse: {
+                    allowedScenario: docData.allowedScenario,
+                    deniedScenario: docData.deniedScenario
+                }
             })
         });
         resolve(responses)
