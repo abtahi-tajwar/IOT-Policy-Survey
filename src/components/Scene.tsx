@@ -41,7 +41,6 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
     const [testFinished, setTestFinished] = React.useState<boolean>(false)
 
     React.useEffect(() => {
-        console.log("In page scene", scene, "hasUserAlreadyTookTest: ", hasUserAlreadyTookTest)
         if (scene && hasUserAlreadyTookTest !== null) {
             setResponseStatus({
                 status: 'not_submitted',
@@ -56,7 +55,6 @@ function Scene({ userId, scene, atLastScene, goToNextScene, hasUserAlreadyTookTe
                 scenarioAllowedByPolicy: '',
                 scenarioDeniedByPolicy: ''
             })
-            console.log("Everything is running", scene)
         }
     }, [scene, hasUserAlreadyTookTest])
 
