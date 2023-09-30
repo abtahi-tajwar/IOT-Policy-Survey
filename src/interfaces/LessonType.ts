@@ -36,7 +36,8 @@ interface DnDLessonDataType {
     blanks: [
         {
             answers: Array<string>,
-            question: Array<string>  
+            question: Array<string>,
+            explanation?: string 
         }
     ]
 }
