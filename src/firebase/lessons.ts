@@ -9,7 +9,8 @@ export interface SubmitLessonResponseArgument {
     lessonId: string, 
     lessonType: string,
     score: number,
-    total: number
+    total: number,
+    elapsedTime: number
 }
 export interface DnDResponseFirebaseType {
     _: Array<DnDResponseType>
@@ -89,7 +90,8 @@ export const submitLessonResponse = (data : SubmitLessonResponseArgument) => {
                 lesson: {
                     id: data.lessonId,
                     type: data.lessonType
-                }
+                },
+                elapsedTime: data.elapsedTime
                 
             })
             resolve()

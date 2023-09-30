@@ -22,12 +22,10 @@ function UserIdInput({ setUserId } : UserIdInputType) {
         } else {
             setSubmitLoading(true)
             createNewCandidate().then((user : DocumentReference<DocumentData>) => {
-                console.log("New candidate created", user)
                 setUserId(user.id)
                 dispatch(updateCandidateId(user.id))
                 setSubmitLoading(false)
             }).catch(e => {
-                console.log("Something went wrong while registering candidate", e)
                 setSubmitLoading(false)
             })
         }
