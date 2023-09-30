@@ -72,7 +72,7 @@ function DragAndDropAnswer() {
           let _obtainedScore = 0
 
           currentLesson.data.blanks.forEach((blank, bi) => {
-
+            console.log("Each blank data", blank)
             _blanks.push([])
             _explanations.push(blank.explanation)
             let _answerIndex = 0
@@ -100,6 +100,7 @@ function DragAndDropAnswer() {
 
           setBlanks(_blanks)
           setCorrectAnswers(_correctAnswers)
+          setExplanations(_explanations)
           setScore({
             total: _totalScore,
             obtained: _obtainedScore
@@ -155,6 +156,18 @@ function DragAndDropAnswer() {
             ))}
           </ol>
         </div>
+        <BootstrapDialog
+          onClose={() => setExplanationDialog(prevState => ({ ...prevState, open: false }))}
+          aria-labelledby="customized-dialog-title"
+          open={explanationDialog.open}
+        >
+          <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
+            Answer Explanation
+          </DialogTitle>
+          <DialogContent dividers>
+            {explanationDialog.content}
+          </DialogContent>
+        </BootstrapDialog>
       </Wrapper>
     </Loader>
   );
