@@ -7,7 +7,7 @@ import PuzzleIcon from '../../assets/Lessons/puzzle.svg'
 import CompletedIcon from '../../assets/Lessons/completed.svg'
 import TrainingStepperFlow from './TrainingStepperFlow'
 import TrainingContent from './TrainingContent'
-import React, { useState, useEffect, createContext } from 'react'
+import React, { useState, useEffect, createContext, useRef } from 'react'
 import TrainingInstruction from './TrainingInstruction'
 import { getCompletedLessons } from '../../firebase/candidates'
 import { useAppDispatch, useAppSelector } from '../../redux/hooks'
@@ -44,6 +44,8 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
     const [submitAnswerLoading, setSubmitAnswerLoading] = useState<boolean>(false)
     const [lessonNavigationLoading, setLessonNavigationLoading] = useState<boolean>(false)
     const [pageType, setPageType] = useState<'instruction' | 'question' | 'answer' | null>(null)
+    const [startingTime, setStartingTime] = useState<number>(new Date().getTime())
+    const startTimeRef = useRef<number>(new Date().getTime())
 
     useEffect(() => {
       dispatch(getLessonResponse(candidateId)).then(() => {
@@ -53,6 +55,7 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
     }, [])
 
     useEffect(() => {
+      setStartingTime(new Date().getTime())
       if (lessonState.lessonNavigationIndex !== -1) {
         if (!lessonState.lessons[lessonState.lessonNavigationIndex]?.data?.instructions) {
           setPageType('question')
@@ -64,6 +67,10 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
         setNavigateToLesson(false)
       }
     }, [lessonState.lessonNavigationIndex])
+
+    useEffect(() => {
+      startTimeRef.current = startingTime
+    }, [startingTime])
 
     const navigateLesson = () => {
       return new Promise(async (resolve : (arg : void) => void, reject) => {
@@ -86,6 +93,7 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
     }
     const handleSubmit = () => {
       setSubmitAnswerLoading(true)
+      const elapsedTime = new Date().getTime() - startTimeRef.current
       // Submit answers to the database
       const { score, total } = determineScore()
       
@@ -95,7 +103,7 @@ function Training({ candidateId, setNavigateToLesson } : TrainingPropsType) {
           responses: lessonResponse,
           lessonId: lessonState.lessons[lessonState.lessonNavigationIndex].id,
           lessonType: lessonState.lessons[lessonState.lessonNavigationIndex].data.type,
-          score, total
+          elapsedTime, score, total
         }
         console.log("Lesson repsonse data", lessonResponseData )
         submitLessonResponse(lessonResponseData).then(() => {
