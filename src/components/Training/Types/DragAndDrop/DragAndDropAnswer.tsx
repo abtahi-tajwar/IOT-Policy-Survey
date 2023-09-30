@@ -7,6 +7,12 @@ import {
 } from "../../../../interfaces/LessonType";
 import { getCandidateLessonResponse } from "../../../../firebase/candidates";
 import Loader from "../../../Loader";
+import Tooltip, { TooltipProps, tooltipClasses } from '@mui/material/Tooltip';
+import Chip from '@mui/material/Chip';
+import HelpIcon from '@mui/icons-material/Help';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
 
 interface BlankType {
   index: number;
@@ -23,6 +29,10 @@ function DragAndDropAnswer() {
     useState<CandidateLessonResponseType | null>(null);
   const [candidateResponseLoading, setCandidateResponseLoading] =
     useState<boolean>(true);
+  const [explanationDialog, setExplanationDialog] = useState({
+      open: false,
+      content: ""
+    })
 
   const [blanks, setBlanks] = useState<Array<Array<BlankType | string>>>([
     [
@@ -42,16 +52,12 @@ function DragAndDropAnswer() {
     ["if", "then"],
     ["if", "then"],
   ]);
+  const [explanations, setExplanations] = useState<Array<string | undefined>>([])
   const [score, setScore] = useState({
     total: 0,
     obtained: 0,
   })
 
-
-  useEffect(() => {
-    console.log("Blanks", blanks)
-    console.log("Correct Answers", correctAnswers)
-  }, [blanks, correctAnswers])
   useEffect(() => {
     setCandidateResponseLoading(true);
     if (currentLesson && currentLesson.data.type === "dnd") {
@@ -61,12 +67,14 @@ function DragAndDropAnswer() {
           setCandidateResponse(res);
           const _blanks : Array<Array<BlankType | string>> = [];
           const _correctAnswers: Array<Array<string>> = [];
+          const _explanations : Array<string | undefined> = []
           let _totalScore = 0
           let _obtainedScore = 0
 
           currentLesson.data.blanks.forEach((blank, bi) => {
 
             _blanks.push([])
+            _explanations.push(blank.explanation)
             let _answerIndex = 0
             const _blankResponses : Array<DnDResponseType> = res.data.responses[bi] as Array<DnDResponseType>
             blank.question.forEach((part, pi) => {
@@ -102,6 +110,13 @@ function DragAndDropAnswer() {
     }
   }, [currentLesson]);
 
+  const handleShowExplanation = (explanation : string) => {
+    setExplanationDialog({
+      open: true,
+      content: explanation
+    })
+  }
+
   return (
     <Loader isLoading={candidateResponseLoading}>
       <Wrapper>
@@ -131,8 +146,12 @@ function DragAndDropAnswer() {
                   ) : (
                     <span key={pi}> {part}</span>
                   )
-                )}
+                )} &nbsp;
+                {explanations[bi] && <LightTooltip title={explanations[bi]}>
+                    <Chip icon={<HelpIcon />} label="Explanation" onClick={() => handleShowExplanation(explanations[bi] ?? "")} />
+                </LightTooltip>}
               </li>
+              
             ))}
           </ol>
         </div>
@@ -157,5 +176,25 @@ const Wrapper = styled.div`
     text-decoration: line-through;
   }
 `;
+const LightTooltip = styled(({ className, ...props }: TooltipProps) => (
+  <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme } : any) => ({
+  [`& .${tooltipClasses.tooltip}`]: {
+    backgroundColor: 'white',
+    color: 'rgba(0, 0, 0, 0.87)',
+    boxShadow: '5px 6px 2px 0px rgba(0,0,0,0.75);',
+    fontSize: 11,
+  },
+}));
+
+const BootstrapDialog = styled(Dialog)(({ theme }) => ({
+  '& .MuiDialogContent-root': {
+    padding: 16,
+  },
+  '& .MuiDialogActions-root': {
+    padding: 16,
+  },
+}));
+
 
 export default DragAndDropAnswer;
