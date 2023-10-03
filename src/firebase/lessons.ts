@@ -52,7 +52,8 @@ export const getLessonsBySceneGroup = (scenarioGroupId: string) => {
                             // },
                             questions: data.questions,
                             options: data.options,
-                            blanks: data.blanks
+                            blanks: data.blanks,
+                            image: data.image
                         }
                     })
                 })
