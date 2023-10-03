@@ -29,8 +29,8 @@ export function getAll() {
                 data: {
                     name: docData.name,
                     order: docData.order,
-                    instruction_markdown: docData.instruction_markdown,
-                    scenario_markdown: docData.scenario_markdown,
+                    instruction_markdown: docData.instruction_markdown.file,
+                    scenario_markdown: docData.scenario_markdown.file,
                     active: docData.active,
                     groupId: docData.groupId
                 }
@@ -77,8 +77,8 @@ export function getRemainingScenesForCandidate (candidateId: string) {
                             data: {
                                 name: scene.data().name,
                                 order: scene.data().order,
-                                instruction_markdown: scene.data().instruction_markdown,
-                                scenario_markdown: scene.data().scenario_markdown,
+                                instruction_markdown: scene.data().instruction_markdown.file,
+                                scenario_markdown: scene.data().scenario_markdown.file,
                                 active: scene.data().active,
                                 groupId: scene.data().groupId
                             }
@@ -113,8 +113,11 @@ function downloadAndReadFile(url: string) {
     return new Promise<string>(async (resolve, reject) => {
         const storage = getStorage();
         try {
+            console.log("File url for download", url)
             const reference = ref(storage, url);
+            console.log("Download reference", reference)
             const downloadUrl = await getDownloadURL(reference)
+            console.log("Download url", downloadUrl)
             // This can be downloaded directly:
             const xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';

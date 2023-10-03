@@ -35,11 +35,17 @@ function App() {
       getCandidateSceneGroup(userId).then((scenarioGroupId : string) => { // Fetching candidate scene group which determines the training id
         dispatch(getLessons(scenarioGroupId)).then(res => {
           setLessonsLoading(false)
+        }).catch(e => {
+          console.error("Get Lessons error", e)
         })
         getLessonsBySceneGroup(scenarioGroupId).then(res => { // Fetching all the lessons relevent to that training Id
           setLessonsLoading(false)
           setLessons(res)
+        }).catch(e => {
+          console.error("Get Lessons By Scene group error", e)
         })
+      }).catch(e => {
+        console.error("Get Candidate Scene group error", e)
       })
       getRemainingScenesForCandidate(userId).then((response : Array<SceneGetType>) => {
         setScenes(response)
@@ -50,7 +56,7 @@ function App() {
           setCurrentScene(response[currentSceneIndex])
         }
       }).catch(e => {
-        console.log(e, userId)
+        console.error(e, userId)
         setInvalidId(true)
       })
     }

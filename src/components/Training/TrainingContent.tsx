@@ -45,8 +45,8 @@ function TrainingContent({ pageType } : TrainingContentPropsType) {
   return (
     <Loader isLoading={!trainingType}>
       {trainingType && <Wrapper>
-        { currentLesson?.data.image && <div className="main-image-container">
-          <img src={MainImageSource} />
+        { (currentLesson?.data.image) && <div className="main-image-container">
+          <img src={currentLesson?.data.image} />
         </div> }
         <div className="content-container">
           {
