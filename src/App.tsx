@@ -48,6 +48,7 @@ function App() {
         console.error("Get Candidate Scene group error", e)
       })
       getRemainingScenesForCandidate(userId).then((response : Array<SceneGetType>) => {
+        console.log("Ordered scene responses", response)
         setScenes(response)
         checkIfLastScene(response.length, currentSceneIndex)
         if (response.length === 0) {

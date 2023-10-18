@@ -8,6 +8,8 @@ import {
   getFirestore,
   DocumentSnapshot,
   DocumentData,
+  getDoc,
+  doc,
 } from "firebase/firestore";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { SceneGetType } from "../interfaces/SceneType";
@@ -64,11 +66,15 @@ export function getRemainingScenesForCandidate (candidateId: string) {
         const db = getFirestore()
         try {
             const userSnapshot : DocumentSnapshot<DocumentData> = await getCandidate(candidateId)
-            const userResponses = await getAllUserResponse(candidateId)
             const userData = userSnapshot.data()
+            const userResponses = await getAllUserResponse(candidateId)
+            
             if (userData) {
+                const scenarioGroupDocSnap = await getDoc(doc(db, "scenario_groups", userData.assignedGroup));
+                const scenarioGroupData = scenarioGroupDocSnap.data()
                 const q =  query(collection(db, "scenarios"), where("groupId", '==', userData.assignedGroup))
                 let scenes : Array<SceneGetType> = []
+                let orderedScenes : Array<SceneGetType> = []
                 const scenariosSnapshot = await getDocs(q)
                 scenariosSnapshot.forEach(scene => {
                     if (!userResponses.find(ur => ur.sceneId === scene.id)) {
@@ -98,7 +104,17 @@ export function getRemainingScenesForCandidate (candidateId: string) {
                         }
                     }
                 }))
-                resolve(scenes)
+                if (scenarioGroupData) {
+                    scenarioGroupData.scenarios.forEach((sceneId : string) => {
+                        const sceneData = scenes.find(sc => sc.id === sceneId)
+                        if (sceneData) {
+                            orderedScenes.push(sceneData)
+                        }
+                    })
+                } else {
+                    orderedScenes = scenes
+                }
+                resolve(orderedScenes)
             } else {
                 reject({
                     error: 'Invalid User Id'
@@ -113,11 +129,8 @@ function downloadAndReadFile(url: string) {
     return new Promise<string>(async (resolve, reject) => {
         const storage = getStorage();
         try {
-            console.log("File url for download", url)
             const reference = ref(storage, url);
-            console.log("Download reference", reference)
             const downloadUrl = await getDownloadURL(reference)
-            console.log("Download url", downloadUrl)
             // This can be downloaded directly:
             const xhr = new XMLHttpRequest();
             xhr.responseType = 'blob';
